@@ -1,2 +1,2 @@
 # DBAssignment
-go lang back-end server for DB subject Assignment
+spring boot back-end server for DB subject Assignment

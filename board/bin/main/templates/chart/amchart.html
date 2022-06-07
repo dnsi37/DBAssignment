@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ko"
+	  xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="layout/default_layout">
+<head>
+<meta charset="UTF-8">
+<title>AmChart</title>
+<style type="text/css">
+	#chartdiv {width: 100%;height: 500px;}
+</style><!-- Bootstrap CSS -->
+<th:block layout:fragment="css">
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css">
+</th:block>
+</head>
+<body>
+    <div class="container" layout:fragment="content">
+		<h1 class="mt-4"></h1>
+		<ol class="breadcrumb mb-4">
+			<li class="breadcrumb-item">AmChart sample</li>
+		</ol>
+    	<div class="card mb-3">
+			<div class="card-header">
+				<i class="fas fa-chart-bar"></i> 주가 차트
+			</div>
+			<div class="card-body">
+				<div id="chartdiv"></div>
+			</div>
+			<div class="card-footer small text-muted" th:text="'Updated '+${timestamp}">Updated yesterday at 11:59 PM</div>
+		</div>
+    </div>
+
+	<th:block layout:fragment="script">
+	<script src="//cdn.amcharts.com/lib/4/core.js"></script>
+	<script src="//cdn.amcharts.com/lib/4/charts.js"></script>
+	<script src="//cdn.amcharts.com/lib/4/themes/animated.js"></script>
+    <script>
+	// Themes begin
+	am4core.useTheme(am4themes_animated);
+
+	// Create chart
+	var chart = am4core.create("chartdiv", am4charts.XYChart);
+	chart.padding(0, 15, 0, 15);
+	chart.leftAxesContainer.layout = "vertical";
+	chart.dateFormatter.dateFormat = "yyyy-MM-dd";
+	chart.dataDateFormat = "yyyy-MM-dd";
+
+	var dateAxis = chart.xAxes.push(new am4charts.DateAxis());
+	dateAxis.renderer.grid.template.location = 0;
+	dateAxis.renderer.ticks.template.length = 8;
+	dateAxis.renderer.ticks.template.strokeOpacity = 0.1;
+	dateAxis.renderer.grid.template.disabled = true;
+	dateAxis.renderer.ticks.template.disabled = false;
+	dateAxis.renderer.ticks.template.strokeOpacity = 0.2;
+	dateAxis.renderer.minLabelPosition = 0.01;
+	dateAxis.renderer.maxLabelPosition = 0.99;
+	dateAxis.keepSelection = true;
+	dateAxis.minHeight = 30;
+	dateAxis.minZoomCount = 5;
+	dateAxis.dateFormats.setKey("month", "yyyy/MM/dd");
+	dateAxis.start = 0.9;
+	dateAxis.groupData = true;
+	dateAxis.skipEmptyPeriods = true
+	dateAxis.tooltipDateFormat = "yyyy-MM-dd";
+
+	var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+	valueAxis.tooltip.disabled = true;
+	valueAxis.zIndex = 1;
+	valueAxis.renderer.baseGrid.disabled = true;
+	valueAxis.height = am4core.percent(75);
+	valueAxis.renderer.gridContainer.background.fill = am4core.color("#000000");
+	valueAxis.renderer.gridContainer.background.fillOpacity = 0.05;
+	valueAxis.renderer.inside = true;
+	valueAxis.renderer.labels.template.verticalCenter = "bottom";
+	valueAxis.renderer.labels.template.padding(2, 2, 2, 2);
+	valueAxis.renderer.fontSize = "0.8em"
+
+	var series2 = chart.series.push(new am4charts.CandlestickSeries());
+	series2.dropFromOpenState.properties.fill = am4core.color("#3333FF");
+	series2.dropFromOpenState.properties.stroke = am4core.color("#3333FF");
+	series2.riseFromOpenState.properties.fill = am4core.color("#E71909");
+	series2.riseFromOpenState.properties.stroke = am4core.color("#E71909");
+	series2.dataFields.dateX = "date";
+	series2.dataFields.openValueY = "open";
+	series2.dataFields.valueY = "close";
+	series2.dataFields.lowValueY = "low";
+	series2.dataFields.highValueY = "high";
+	series2.clustered = false;
+	series2.tooltipText = "시가: {openValueY.value}\n고가: {highValueY.value}\n저가: {lowValueY.value}\n종가: {valueY.value}";
+	series2.name = "시가";
+	series2.defaultState.transitionDuration = 0;
+	
+	var valueAxis3 = chart.yAxes.push(new am4charts.ValueAxis());
+	valueAxis3.tooltip.disabled = true;
+	valueAxis3.height = am4core.percent(25);
+	valueAxis3.zIndex = 3
+	valueAxis3.marginTop = 30;
+	valueAxis3.renderer.baseGrid.disabled = true;
+	valueAxis3.renderer.inside = true;
+	valueAxis3.renderer.labels.template.verticalCenter = "bottom";
+	valueAxis3.renderer.labels.template.padding(2, 2, 2, 2);
+	valueAxis3.renderer.fontSize = "0.8em"
+	valueAxis3.renderer.gridContainer.background.fill = am4core.color("#000000");
+	valueAxis3.renderer.gridContainer.background.fillOpacity = 0.05;
+
+	var series3 = chart.series.push(new am4charts.ColumnSeries());
+	series3.dataFields.dateX = "date";
+	series3.clustered = false;
+	series3.dataFields.valueY = "volume";
+	series3.yAxis = valueAxis3;
+	series3.tooltipText = "거래량: {valueY.value}";
+	series3.name = "거래량";
+	series3.groupFields.valueY = "sum";
+	series3.defaultState.transitionDuration = 0;
+
+	chart.cursor = new am4charts.XYCursor();
+
+	var scrollbarX = new am4charts.XYChartScrollbar();
+
+	var sbSeries = chart.series.push(new am4charts.LineSeries());
+	sbSeries.dataFields.dateX = "date";
+	sbSeries.dataFields.valueY = "close";
+	scrollbarX.series.push(sbSeries);
+	sbSeries.disabled = true;
+	scrollbarX.marginBottom = 20;
+	chart.scrollbarX = scrollbarX;
+	scrollbarX.scrollbarChart.xAxes.getIndex(0).minHeight = undefined;
+	
+	ajaxRequest("005930");
+	
+	function ajaxRequest(jongmokCode) {
+		$.ajax({
+            url: "/chart/stockList.ajax",
+            type: "GET",
+            data:{'jongmokCode': jongmokCode},
+            success: function(data){
+				try {
+					var dataArr = new Array();
+					
+					for(var i=0; i<data.length; i++){
+						dataArr.push({
+						  "date": data[i]['date'],
+						  "open": (data[i]['open'] > 0 ? data[i]['open'] : null),
+						  "high": (data[i]['high'] > 0 ? data[i]['high'] : null),
+						  "low": (data[i]['low'] > 0 ? data[i]['low'] : null),
+						  "close": (data[i]['close'] > 0 ? data[i]['close'] : null),
+						  "volume": (data[i]['volume'] > 0 ? data[i]['volume'] : null)
+						});
+					}
+					
+					chart.data = dataArr;
+				} catch (e) {
+					this.error();
+				    return;
+				}
+            },
+            error: function(){
+                alert("조회중 오류가 발생하였습니다.");
+                
+                chart.data = new Array();
+            }
+        });
+	}
+    </script>
+	</th:block>
+</body>
+</html>
