@@ -8,42 +8,24 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity(name = "dook")
+@Entity(name = "Liquor_category")
 @ToString
-
-public class SampleEntity {
+public class Liquor_category {
 
     @Id
     @GeneratedValue( strategy = GenerationType.IDENTITY )
     @Column(nullable = false)
-    private int bookid;
+    private int category_id ;
 
-    @Column(nullable = true)
-    private String bookname;
-
-    @Column(nullable = true)
-    private String publisher;
-
-    @Column(nullable = true)
-    private  int price ;
-
-    @Builder
-    public  SampleEntity( String bookname , String publisher , int price) {
-        this.bookname = bookname;
-        this.publisher = publisher;
-        this.price = price;
-    }
-
-
+    @Column(nullable = false)
+    private String name ;
 }

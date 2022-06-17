@@ -6,6 +6,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,36 +16,36 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
-
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity(name = "dook")
+@Entity(name = "Stocks")
 @ToString
-
-public class SampleEntity {
+public class Stocks {
 
     @Id
     @GeneratedValue( strategy = GenerationType.IDENTITY )
     @Column(nullable = false)
-    private int bookid;
+    private int stock_id ;
 
-    @Column(nullable = true)
-    private String bookname;
+    @OneToOne
+    @JoinColumn(name = "liquor_id")
+    private Liquors liquors;
 
-    @Column(nullable = true)
-    private String publisher;
+    @Column(nullable = false)
+    private int qty;
 
-    @Column(nullable = true)
-    private  int price ;
+    @Column(nullable = false)
+    private String location ;
 
-    @Builder
-    public  SampleEntity( String bookname , String publisher , int price) {
-        this.bookname = bookname;
-        this.publisher = publisher;
-        this.price = price;
+    public void addLiquor (Liquors liquors) {
+        this.liquors = liquors;
     }
 
-
+    @Builder
+    public  Stocks ( int qty, String location) {
+        this.qty = qty;
+        this.location = location;
+    }
 }
